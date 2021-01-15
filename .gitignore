@@ -1,0 +1,21 @@
+# System
+.DS_Store
+.idea/
+
+# Temp
+*.log
+*.cache
+*.diff
+*.patch
+*.tmp
+.eslintcache
+
+# Coverage
+coverage/
+*.lcov
+
+# Dependency
+node_modules/
+
+# Custermize
+lib/
