@@ -15,6 +15,6 @@
     "moduleResolution": "node",
     "outDir": "lib"
   },
-  "include": ["src"],
+  "include": ["src", "conventional-changelog-config"],
   "exclude": ["node_modules", "lib", "scripts", "test"]
 }

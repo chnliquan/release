@@ -23,6 +23,16 @@
       "windows": {
         "program": "${workspaceFolder}/node_modules/jest/bin/jest"
       }
-    }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Bin File",
+      "program": "${workspaceRoot}/node_modules/ts-node/dist/bin.js",
+      "args": ["${workspaceRoot}/bin/index.js", "--type", "gitlab"],
+      "cwd": "${workspaceRoot}",
+      "protocol": "inspector",
+      "console": "integratedTerminal"
+    },
   ]
 }
