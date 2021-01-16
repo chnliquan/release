@@ -21,7 +21,8 @@
     "watch": "tsc -w",
     "build": "rimraf lib && tsc",
     "prerelease": "npm run lint && npm run test:once && npm run build",
-    "release": "node ./bin/index.js"
+    "release": "node ./bin/index.js",
+    "release:quick": "node ./bin/index.js"
   },
   "repository": {
     "type": "git",

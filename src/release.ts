@@ -1,4 +1,5 @@
 import path from 'path'
+import inquirer from 'inquirer'
 import chalk from 'chalk'
 import open from 'open'
 import newGithubReleaseUrl from 'new-github-release-url'
@@ -90,7 +91,7 @@ export async function release(options: Options): Promise<void> {
   await exec(`git push --set-upstream origin ${branch} --tags`)
 
   logger.step(`publish package ${name}`)
-  await publishToNpm(nextVersion)
+  await publishToNpm(name, nextVersion)
 
   if (type === 'github') {
     await githubRelease(repoUrl, `${tag}`, changelog, isPrerelease(nextVersion))
@@ -99,14 +100,34 @@ export async function release(options: Options): Promise<void> {
   logger.success(`${name}@${nextVersion} publish successfully`)
 }
 
-async function publishToNpm(nextVersion: string) {
+async function publishToNpm(name: string, nextVersion: string) {
+  let additionArg = ''
+
+  if (/^@\w+\/.+/.test(name)) {
+    const { confirm } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        message: `This package ${chalk.cyanBright.bold(
+          name
+        )} is private, do you want to access public`,
+        name: 'confirm',
+        default: true,
+      },
+    ])
+
+    if (confirm) {
+      additionArg = '--access public'
+    }
+  }
+
   const cliArgs = isRcVersion(nextVersion)
-    ? 'publish --tag next'
+    ? `publish ${additionArg} --tag next`
     : isAlphaVersion(nextVersion)
-    ? 'publish --tag alpha'
+    ? `publish ${additionArg} --tag alpha`
     : isBetaVersion(nextVersion)
-    ? 'publish --tag beta'
-    : 'publish'
+    ? `publish ${additionArg} --tag beta`
+    : `publish ${additionArg}`
+
   await exec(`npm ${cliArgs}`)
 }
 
