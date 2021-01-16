@@ -1,9 +1,9 @@
-# 0.1.0 (2021-01-16)
+## [Changes](https://github.com/chnliquan/release-npm/compare/v0.1.0...v0.1.1) (2021-01-16)
 
 
-### ✨ Features
+### 🐛 Bug Fixes
 
-* add release ([2dc7e4c](https://github.com/chnliquan/release-npm/commit/2dc7e4c75b010dc1948c8d813c741c2a63fbfe05))
+* support private package ([d013f67](https://github.com/chnliquan/release-npm/commit/d013f679058395e5721dbdd2230f99281467511f))
 
 
 
