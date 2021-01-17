@@ -1,3 +1,4 @@
+import fs from 'fs-extra'
 import path from 'path'
 import inquirer from 'inquirer'
 import chalk from 'chalk'
@@ -12,16 +13,6 @@ import { exec } from './utils/cp'
 import { getStatus, getBranchName } from './utils/git'
 import { Options } from './types'
 import { URL } from 'url'
-
-const pkgPath = path.join(__dirname, '../package.json')
-const { name, repository, publishConfig } = require(pkgPath)
-
-const defaultOptions = {
-  config: path.join(__dirname, '../conventional-changelog-config'),
-  repoUrl: repository ? repository.url : '',
-  latest: true,
-  type: 'github',
-}
 
 /**
  * Workflow
@@ -40,6 +31,27 @@ export async function release(options: Options): Promise<void> {
 
   if (hasModified) {
     logger.printErrorAndExit('Your git status is not clean. Aborting.')
+  }
+
+  const pkgPath = path.join(process.cwd(), './package.json')
+
+  if (!fs.existsSync(pkgPath)) {
+    logger.printErrorAndExit(
+      `Unable to find the ${pkgPath} file, please make sure to execute the command in the root directory.`
+    )
+  }
+
+  const { name, version, repository, publishConfig } = fs.readJSONSync(pkgPath)
+
+  if (!name || !version) {
+    logger.printErrorAndExit(`package.json file ${pkgPath} is not valid, please check.`)
+  }
+
+  const defaultOptions = {
+    config: path.join(__dirname, '../conventional-changelog-config'),
+    repoUrl: repository ? repository.url : '',
+    latest: true,
+    type: 'github',
   }
 
   const { config, latest, type, repoUrl } = Object.assign(defaultOptions, options)
