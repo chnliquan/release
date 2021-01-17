@@ -1,5 +1,5 @@
 import path from 'path'
-import fs from 'fs-extra'
+import fs from 'fs'
 import os from 'os'
 import conventionalChangelog from 'conventional-changelog'
 import { logger } from './utils/logger'

@@ -1,4 +1,4 @@
-import fs from 'fs-extra'
+import fs from 'fs'
 import inquirer from 'inquirer'
 import chalk from 'chalk'
 import semver from 'semver'
@@ -19,7 +19,7 @@ export async function getNextVersion(pkgPath: string, version?: string): Promise
     logger.printErrorAndExit(`package.json file ${pkgPath} is not exist.`)
   }
 
-  const pkg = fs.readJSONSync(pkgPath)
+  const pkg = require(pkgPath)
 
   if (!pkg || !pkg.name || !pkg.version) {
     logger.printErrorAndExit(`package.json file ${pkgPath} is not valid.`)

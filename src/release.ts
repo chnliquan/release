@@ -1,4 +1,4 @@
-import fs from 'fs-extra'
+import fs from 'fs'
 import path from 'path'
 import inquirer from 'inquirer'
 import chalk from 'chalk'
@@ -41,7 +41,7 @@ export async function release(options: Options): Promise<void> {
     )
   }
 
-  const { name, version, repository, publishConfig } = fs.readJSONSync(pkgPath)
+  const { name, version, repository, publishConfig } = require(pkgPath)
 
   if (!name || !version) {
     logger.printErrorAndExit(`package.json file ${pkgPath} is not valid, please check.`)
