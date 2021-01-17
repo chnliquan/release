@@ -26,10 +26,6 @@ export class Logger {
     this.error(message)
     process.exit(1)
   }
-
-  scope(scope: string): signale.Signale {
-    return signale.scope(scope)
-  }
 }
 
 export const logger = new Logger()
