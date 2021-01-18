@@ -3,6 +3,7 @@
   "version": "0.1.4",
   "description": "release npm package easily",
   "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
   "bin": {
     "release": "bin/index.js"
   },
@@ -11,7 +12,6 @@
     "lib",
     "conventional-changelog-config"
   ],
-  "typings": "lib/index.d.ts",
   "scripts": {
     "lint": "eslint 'src/**/*.@(js|ts)' --fix && npm-ensure -t deps",
     "prettier": "prettier --write 'lib/**/*.@(js|ts)'",
@@ -21,8 +21,8 @@
     "watch": "tsc -w",
     "build": "rimraf lib && tsc",
     "prerelease": "npm run lint && npm run test:once && npm run build",
-    "release": "node ./bin/index.js",
-    "release:quick": "node ./bin/index.js"
+    "release": "node ./bin/release.js",
+    "release:quick": "node ./bin/release.js"
   },
   "repository": {
     "type": "git",
