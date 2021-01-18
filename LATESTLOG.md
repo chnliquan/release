@@ -1,9 +1,9 @@
-## [Changes](https://github.com/chnliquan/release/compare/v0.1.3...v0.1.4) (2021-01-17)
+## [Changes](https://github.com/chnliquan/release/compare/v0.1.4...v0.1.5) (2021-01-18)
 
 
 ### 🐛 Bug Fixes
 
-* deps ([5dde140](https://github.com/chnliquan/release/commit/5dde1403303faa63833fce507589423faade1f25))
+* bin ([2e4780b](https://github.com/chnliquan/release/commit/2e4780b860323f18ee464f69132eaeaa2fe3b4b1))
 
 
 

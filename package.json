@@ -1,6 +1,6 @@
 {
   "name": "@eljs/release",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "release npm package easily",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
