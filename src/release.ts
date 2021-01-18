@@ -109,7 +109,7 @@ export async function release(options: Options): Promise<void> {
     await githubRelease(repoUrl, `${tag}`, changelog, isPrerelease(nextVersion))
   }
 
-  logger.success(`${name}@${nextVersion} publish successfully`)
+  logger.success(`${chalk.cyanBright.bold(`${name}@${nextVersion}`)} publish successfully.`)
 }
 
 async function publishToNpm(name: string, nextVersion: string) {

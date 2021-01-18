@@ -6,7 +6,7 @@ import { logger } from './utils/logger'
 
 const cwd = process.cwd()
 const CHANGELOG = path.join(cwd, 'CHANGELOG.md')
-const LATEST_LOG = path.join(cwd, 'LATESTLOG.md')
+const LATESTLOG = path.join(cwd, 'LATESTLOG.md')
 
 export async function generateChangelog(configPath: string, latest: boolean): Promise<string> {
   let hasError = false
@@ -53,8 +53,8 @@ export async function generateChangelog(configPath: string, latest: boolean): Pr
         if (firstIndex > -1) {
           latestLog = data.replace(/##* \[([\d\.]+)\]/, '## [Changes]')
 
-          fs.writeFileSync(LATEST_LOG, latestLog)
-          logger.success(`LATESTLOG generated successfully`)
+          fs.writeFileSync(LATESTLOG, latestLog)
+          logger.success(`LATESTLOG generated successfully.`)
         }
       } catch (err) {
         hasError = true
@@ -76,7 +76,7 @@ export async function generateChangelog(configPath: string, latest: boolean): Pr
         return
       }
 
-      logger.success(`CHANGELOG generated successfully`)
+      logger.success(`CHANGELOG generated successfully.`)
       resolve(latestLog)
     })
   })

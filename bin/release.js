@@ -1,4 +1,4 @@
-#! /usr/bin/env node
+#!/usr/bin/env node
 
 'use strict'
 
@@ -20,11 +20,11 @@ function run() {
   const program = new Command()
 
   program
-    .version(pkg.version, '-v, --version', 'output the current version')
-    .option('--latest', 'output latest changelog', true)
-    .option('-t, --type <type>', 'specified repo type', 'github')
-    .option('--repo-url <repoUrl>', 'specified github repo url')
-    .option('--config <config>', 'customize conventional changelog rule')
+    .version(pkg.version, '-v, --version', 'Output the current version')
+    .option('--latest', 'Generate latest changelog', true)
+    .option('-t, --type <type>', 'Publish type github or gitlab', 'github')
+    .option('--repo-url <repoUrl>', 'Github repo url to release')
+    .option('--config <config>', 'Conventional changelog rule')
 
   program.parse(process.argv)
 
