@@ -1,9 +1,9 @@
-## [Changes](https://github.com/chnliquan/release/compare/v0.1.5...v0.1.6) (2021-01-18)
+## [Changes](https://github.com/chnliquan/release/compare/v0.1.6...v0.2.0) (2021-01-19)
 
 
-### 🐛 Bug Fixes
+### ✨ Features
 
-* bin ([7244c92](https://github.com/chnliquan/release/commit/7244c92ec1211e572f0cf6abd014570b14015802))
+* support preset ([c72ea05](https://github.com/chnliquan/release/commit/c72ea05a7025e29fd0fa2942dfe547a9a49638cd))
 
 
 
