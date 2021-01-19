@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import os from 'os'
+import chalk from 'chalk'
 import conventionalChangelog from 'conventional-changelog'
 import { logger } from './utils/logger'
 
@@ -8,12 +9,20 @@ const cwd = process.cwd()
 const CHANGELOG = path.join(cwd, 'CHANGELOG.md')
 const LATESTLOG = path.join(cwd, 'LATESTLOG.md')
 
-export async function generateChangelog(configPath: string, latest: boolean): Promise<string> {
+export async function generateChangelog(changelogPreset: string, latest: boolean): Promise<string> {
   let hasError = false
 
   return new Promise((resolve, reject) => {
+    let config
+    try {
+      config = require(changelogPreset)
+    } catch (err) {
+      console.log(chalk.redBright(`Can not resolve the changelog preset ${changelogPreset}.`))
+      process.exit(1)
+    }
+
     const stream = conventionalChangelog({
-      config: require(configPath),
+      config,
     })
 
     let changelog = ''

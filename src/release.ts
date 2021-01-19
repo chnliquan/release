@@ -48,17 +48,16 @@ export async function release(options: Options): Promise<void> {
   }
 
   const defaultOptions = {
-    config: path.join(__dirname, '../conventional-changelog-config'),
+    changelogPreset: '@eljs/changelog-preset',
     repoUrl: repository ? repository.url : '',
     latest: true,
-    type: 'github',
   }
 
-  const { config, latest, type, repoUrl } = Object.assign(defaultOptions, options)
+  const { changelogPreset, latest, repoType, repoUrl } = Object.assign(defaultOptions, options)
 
   let registry = ''
 
-  if (type === 'github') {
+  if (repoType === 'github') {
     try {
       new URL(repoUrl)
     } catch {
@@ -85,7 +84,7 @@ export async function release(options: Options): Promise<void> {
   const nextVersion = await getNextVersion(pkgPath)
 
   logger.step(`generate changelog`)
-  const changelog = await generateChangelog(config, latest)
+  const changelog = await generateChangelog(changelogPreset, latest)
 
   const commitMessage = `chore: bump version v${nextVersion}`
 
@@ -105,7 +104,7 @@ export async function release(options: Options): Promise<void> {
   logger.step(`publish package ${name}`)
   await publishToNpm(name, nextVersion)
 
-  if (type === 'github') {
+  if (repoType === 'github') {
     await githubRelease(repoUrl, `${tag}`, changelog, isPrerelease(nextVersion))
   }
 

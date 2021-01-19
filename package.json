@@ -1,6 +1,6 @@
 {
   "name": "@eljs/release",
-  "version": "0.1.6",
+  "version": "0.1.10",
   "description": "release npm package easily",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -21,8 +21,8 @@
     "watch": "tsc -w",
     "build": "rimraf lib && tsc",
     "prerelease": "npm run lint && npm run test:once && npm run build",
-    "release": "node ./bin/release.js",
-    "release:quick": "node ./bin/release.js"
+    "release": "node ./bin/release.js --repo-type=github",
+    "release:quick": "node ./bin/release.js --repo-type=github"
   },
   "repository": {
     "type": "git",
@@ -57,6 +57,7 @@
   "dependencies": {
     "@commitlint/cli": "^9.0.1",
     "@commitlint/config-conventional": "^9.0.1",
+    "@eljs/changelog-preset": "0.0.1",
     "chalk": "^4.1.0",
     "commander": "^6.2.1",
     "conventional-changelog": "^3.1.21",
