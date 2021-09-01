@@ -84,7 +84,7 @@ export async function release(options: Options): Promise<void> {
   const nextVersion = await getNextVersion(pkgPath)
 
   logger.step(`generate changelog`)
-  const changelog = await generateChangelog(changelogPreset, latest)
+  const changelog = await generateChangelog(changelogPreset, latest, name)
 
   const commitMessage = `chore: bump version v${nextVersion}`
 

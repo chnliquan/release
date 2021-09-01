@@ -9,7 +9,11 @@ const cwd = process.cwd()
 const CHANGELOG = path.join(cwd, 'CHANGELOG.md')
 const LATESTLOG = path.join(cwd, 'LATESTLOG.md')
 
-export async function generateChangelog(changelogPreset: string, latest: boolean): Promise<string> {
+export async function generateChangelog(
+  changelogPreset: string,
+  latest: boolean,
+  pkgName: string
+): Promise<string> {
   let hasError = false
 
   return new Promise((resolve, reject) => {
@@ -30,7 +34,11 @@ export async function generateChangelog(changelogPreset: string, latest: boolean
 
     stream.on('data', chunk => {
       try {
-        const data = chunk.toString()
+        let data: string = chunk.toString()
+
+        if (data.indexOf('###') === -1) {
+          data = data.replace(/\n+/g, `\n\n **Note:** Version bump only for package ${pkgName}`)
+        }
 
         if (fs.existsSync(CHANGELOG)) {
           const remain = fs.readFileSync(CHANGELOG, 'utf8').trim()

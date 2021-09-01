@@ -29,10 +29,10 @@
       "request": "launch",
       "name": "Bin File",
       "program": "${workspaceRoot}/node_modules/ts-node/dist/bin.js",
-      "args": ["${workspaceRoot}/bin/index.js", "--type", "gitlab"],
-      "cwd": "${workspaceRoot}",
+      "args": ["${workspaceRoot}/bin/release.js", "--repo-type=gitlab"],
+      "cwd": "/Users/ender/learning/release-demo",
       "protocol": "inspector",
       "console": "integratedTerminal"
-    },
+    }
   ]
 }

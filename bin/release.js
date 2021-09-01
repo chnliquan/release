@@ -43,30 +43,16 @@ function run() {
 
   program.parse(process.argv)
 
-  const options = Object.create(null)
+  const { repoType } = program._optionValues
 
-  if (program.repoType === 'github' || program.repoType === 'gitlab') {
-    options.repoType = program.repoType
-  } else {
+  if (repoType !== 'github' && repoType !== 'gitlab') {
     console.log(
       chalk.redBright(`Expected the --repo-type as github or gitlab, but got ${program.repoType}.`)
     )
     process.exit(1)
   }
 
-  if (program.latest) {
-    options.latest = program.latest
-  }
-
-  if (program.repoUrl) {
-    options.repoUrl = program.repoUrl
-  }
-
-  if (program.changelogPreset) {
-    options.changelogPreset = program.changelogPreset
-  }
-
-  release(options)
+  release(program._optionValues)
     .then(() => process.exit(0))
     .catch(err => {
       console.error(err)
