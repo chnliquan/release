@@ -18,11 +18,11 @@ $ yarn add @eljs/release --dev
   Usage: release [options]
 
   Options:
-    -v, --version                          Output the current version
-    --latest                               Generate latest changelog (default: true)
-    --repo-type <repo-type>                Publish type, github or gitlab
-    --repo-url <repo-url>                  Github repo url to release
-    --changelog-preset <changelog-preset>  Customize conventional changelog preset
+    -v, --version                              Output the current version
+    --latest                                   Generate latest changelog (default: true)
+    -t, --repo-type <repo-type>                Publish type, github or gitlab
+    -u, --repo-url <repo-url>                  Github repo url to release
+    -p, --changelog-preset <changelog-preset>  Customize conventional changelog preset
     -h, --help                             display help for command
 ```
 
@@ -39,27 +39,23 @@ $ yarn add @eljs/release --dev
 
 ## Options
 
-### `--repo-type: 'github' | 'gitlab'`
+### `-t, --repo-type: 'github' | 'gitlab'`
 
 which type should the package publish to, default `github`
 
 
-### `--repo-url?: string`
+### `-u, --repo-url?: string`
 
 when publish successful, it will open a release web page to sync changelog in `github` type, the `repoUrl` option represent the web page, default is `repository.url` in `package.json`
 
 
-### `--changelog-preset?: string`
+### `-p, --changelog-preset?: string`
 
 customize conventional changelog preset, default https://github.com/chnliquan/changelog-preset
 
 ### `--latest?: boolean`
 
 should generate **LATEASTLOG.md** which represent the latest changelog in project root, default `true`
-
-### `--config?: string`
-
-the path to specified conventional changelog config, default `@eljs/conventional-changelog-config`
 
 ## LICENSE
 

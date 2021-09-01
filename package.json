@@ -21,8 +21,8 @@
     "watch": "tsc -w",
     "build": "rimraf lib && tsc",
     "prerelease": "npm run lint && npm run test:once && npm run build",
-    "release": "node ./bin/release.js -t github -p",
-    "release:quick": "node ./bin/release.js -t github -p"
+    "release": "node ./bin/release.js -t github",
+    "release:quick": "node ./bin/release.js -t github"
   },
   "repository": {
     "type": "git",
