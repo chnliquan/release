@@ -51,9 +51,13 @@ export async function release(options: Options): Promise<void> {
     changelogPreset: '@eljs/changelog-preset',
     repoUrl: repository ? repository.url : '',
     latest: true,
+    accessPublic: false,
   }
 
-  const { changelogPreset, latest, repoType, repoUrl } = Object.assign(defaultOptions, options)
+  const { changelogPreset, latest, accessPublic, repoType, repoUrl } = Object.assign(
+    defaultOptions,
+    options
+  )
 
   let registry = ''
 
@@ -102,7 +106,7 @@ export async function release(options: Options): Promise<void> {
   await exec(`git push --set-upstream origin ${branch} --tags`)
 
   logger.step(`publish package ${name}`)
-  await publishToNpm(name, nextVersion)
+  await publishToNpm(name, nextVersion, accessPublic)
 
   if (repoType === 'github') {
     await githubRelease(repoUrl, `${tag}`, changelog, isPrerelease(nextVersion))
@@ -111,23 +115,27 @@ export async function release(options: Options): Promise<void> {
   logger.success(`${chalk.cyanBright.bold(`${name}@${nextVersion}`)} publish successfully.`)
 }
 
-async function publishToNpm(name: string, nextVersion: string) {
+async function publishToNpm(name: string, nextVersion: string, accessPublic: boolean) {
   let additionArg = ''
 
   if (/^@\w+\/.+/.test(name)) {
-    const { confirm } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        message: `This package ${chalk.cyanBright.bold(
-          name
-        )} is private, do you want to access public`,
-        name: 'confirm',
-        default: true,
-      },
-    ])
-
-    if (confirm) {
+    if (accessPublic) {
       additionArg = '--access public'
+    } else {
+      const { confirm } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          message: `This package ${chalk.cyanBright.bold(
+            name
+          )} is private, do you want to access public`,
+          name: 'confirm',
+          default: true,
+        },
+      ])
+
+      if (confirm) {
+        additionArg = '--access public'
+      }
     }
   }
 
