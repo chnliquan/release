@@ -19,11 +19,10 @@ function run() {
 
   program
     .version(pkg.version, '-v, --version', 'Output the current version')
-    .option('--latest', 'Generate latest changelog', true)
-    .option('-p, --access-public', 'Access public when package name start with @')
     .option('-t, --repo-type <repo-type>', 'Publish type, github or gitlab')
     .option('-u, --repo-url <repo-url>', 'Github repo url to release')
-    .option('--changelog-preset <changelog-preset>', 'Customize conventional changelog preset')
+    .option('-p, --changelog-preset <changelog-preset>', 'Customize conventional changelog preset')
+    .option('--latest', 'Generate latest changelog', true)
 
   program.commands.forEach(c => c.on('--help', () => console.log()))
 

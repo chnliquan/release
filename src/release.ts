@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import inquirer from 'inquirer'
 import chalk from 'chalk'
 import open from 'open'
 import newGithubReleaseUrl from 'new-github-release-url'
@@ -51,13 +50,9 @@ export async function release(options: Options): Promise<void> {
     changelogPreset: '@eljs/changelog-preset',
     repoUrl: repository ? repository.url : '',
     latest: true,
-    accessPublic: false,
   }
 
-  const { changelogPreset, latest, accessPublic, repoType, repoUrl } = Object.assign(
-    defaultOptions,
-    options
-  )
+  const { changelogPreset, latest, repoType, repoUrl } = Object.assign(defaultOptions, options)
 
   let registry = ''
 
@@ -106,7 +101,7 @@ export async function release(options: Options): Promise<void> {
   await exec(`git push --set-upstream origin ${branch} --tags`)
 
   logger.step(`publish package ${name}`)
-  await publishToNpm(name, nextVersion, accessPublic)
+  await publishToNpm(name, nextVersion)
 
   if (repoType === 'github') {
     await githubRelease(repoUrl, `${tag}`, changelog, isPrerelease(nextVersion))
@@ -115,37 +110,41 @@ export async function release(options: Options): Promise<void> {
   logger.success(`${chalk.cyanBright.bold(`${name}@${nextVersion}`)} publish successfully.`)
 }
 
-async function publishToNpm(name: string, nextVersion: string, accessPublic: boolean) {
-  let additionArg = ''
+async function publishToNpm(name: string, nextVersion: string) {
+  // const additionArg = ''
 
-  if (/^@\w+\/.+/.test(name)) {
-    if (accessPublic) {
-      additionArg = '--access public'
-    } else {
-      const { confirm } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          message: `This package ${chalk.cyanBright.bold(
-            name
-          )} is private, do you want to access public`,
-          name: 'confirm',
-          default: true,
-        },
-      ])
+  // if (/^@\w+\/.+/.test(name)) {
+  //   if (accessPublic) {
+  //     additionArg = '--access public'
+  //   } else {
+  //     const { confirm } = await inquirer.prompt([
+  //       {
+  //         type: 'confirm',
+  //         message: `This package ${chalk.cyanBright.bold(
+  //           name
+  //         )} is private, do you want to access public`,
+  //         name: 'confirm',
+  //         default: true,
+  //       },
+  //     ])
 
-      if (confirm) {
-        additionArg = '--access public'
-      }
-    }
+  //     if (confirm) {
+  //       additionArg = '--access public'
+  //     }
+  //   }
+  // }
+
+  let releaseTag = ''
+
+  if (isRcVersion(nextVersion)) {
+    releaseTag = 'next'
+  } else if (isAlphaVersion(nextVersion)) {
+    releaseTag = 'alpha'
+  } else if (isBetaVersion(nextVersion)) {
+    releaseTag = 'beta'
   }
 
-  const cliArgs = isRcVersion(nextVersion)
-    ? `publish ${additionArg} --tag next`
-    : isAlphaVersion(nextVersion)
-    ? `publish ${additionArg} --tag alpha`
-    : isBetaVersion(nextVersion)
-    ? `publish ${additionArg} --tag beta`
-    : `publish ${additionArg}`
+  const cliArgs = `publish ${releaseTag ? `--tag ${releaseTag}` : ''} --access public`
 
   await exec(`npm ${cliArgs}`)
 }
