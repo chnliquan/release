@@ -7,6 +7,8 @@ const chalk = require('chalk')
 const { release } = require('../lib')
 const pkg = require('../package.json')
 
+run()
+
 function run() {
   if (pkg.private) {
     console.log(
@@ -18,10 +20,10 @@ function run() {
   }
 
   program
-    .version(pkg.version, '-v, --version', 'Output the current version')
-    .option('-t, --repo-type <repo-type>', 'Publish type, github or gitlab')
-    .option('-u, --repo-url <repo-url>', 'Github repo url to release')
-    .option('-p, --changelog-preset <changelog-preset>', 'Customize conventional changelog preset')
+    .version(pkg.version, '-v, --version', 'Output the current version.')
+    .option('-t, --repo-type <repo-type>', 'Publish type, github or gitlab.')
+    .option('-u, --repo-url <repo-url>', 'Github repo url to release.')
+    .option('-p, --changelog-preset <changelog-preset>', 'Customize conventional changelog preset.')
     .option('--latest', 'Generate latest changelog', true)
 
   program.commands.forEach(c => c.on('--help', () => console.log()))
@@ -59,8 +61,6 @@ function run() {
       process.exit(1)
     })
 }
-
-run()
 
 function enhanceErrorMessages(methodName, log) {
   program.Command.prototype[methodName] = function (...args) {

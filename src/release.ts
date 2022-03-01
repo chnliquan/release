@@ -5,7 +5,7 @@ import open from 'open'
 import newGithubReleaseUrl from 'new-github-release-url'
 
 import { generateChangelog } from './changelog'
-import { getNextVersion } from './getNextVersion'
+import { gettargetVersion } from './gettargetVersion'
 import { isAlphaVersion, isBetaVersion, isPrerelease, isRcVersion } from './utils/version'
 import { logger } from './utils/logger'
 import { exec } from './utils/cp'
@@ -79,74 +79,52 @@ export async function release(options: Options): Promise<void> {
     }
   }
 
-  logger.step(`bump version`)
-  const nextVersion = await getNextVersion(pkgPath)
+  logger.step(`Bump version`)
+  const targetVersion = await gettargetVersion(pkgPath)
 
-  logger.step(`generate changelog`)
+  // generate changelog
+  logger.step(`Generate changelog`)
   const changelog = await generateChangelog(changelogPreset, latest, name)
 
-  const commitMessage = `chore: bump version v${nextVersion}`
+  // committing changes
+  logger.step('Committing changes')
+  await exec('git add -A')
+  await exec(`chore: bump version v${targetVersion}`)
 
-  logger.step(`git commit with ${commitMessage}`)
-  await exec('git add .')
-  await exec(`git commit -m '${commitMessage}'`)
+  // publish package
+  logger.step(`Publishing package ${name}`)
+  await publishToNpm(name, targetVersion)
 
-  const tag = `v${nextVersion}`
+  const tag = `v${targetVersion}`
 
-  logger.step(`git tag ${tag}`)
-  await exec(`git tag ${tag}`)
+  logger.step('Pushing to Git Remote')
+  await exec(`git tag v${targetVersion}`)
 
   const branch = await getBranchName()
   logger.step(`git push --set-upstream origin ${branch} --tags`)
   await exec(`git push --set-upstream origin ${branch} --tags`)
 
-  logger.step(`publish package ${name}`)
-  await publishToNpm(name, nextVersion)
-
+  // github release
   if (repoType === 'github') {
-    await githubRelease(repoUrl, `${tag}`, changelog, isPrerelease(nextVersion))
+    await githubRelease(repoUrl, `${tag}`, changelog, isPrerelease(targetVersion))
   }
-
-  logger.success(`${chalk.cyanBright.bold(`${name}@${nextVersion}`)} publish successfully.`)
 }
 
-async function publishToNpm(name: string, nextVersion: string) {
-  // const additionArg = ''
-
-  // if (/^@\w+\/.+/.test(name)) {
-  //   if (accessPublic) {
-  //     additionArg = '--access public'
-  //   } else {
-  //     const { confirm } = await inquirer.prompt([
-  //       {
-  //         type: 'confirm',
-  //         message: `This package ${chalk.cyanBright.bold(
-  //           name
-  //         )} is private, do you want to access public`,
-  //         name: 'confirm',
-  //         default: true,
-  //       },
-  //     ])
-
-  //     if (confirm) {
-  //       additionArg = '--access public'
-  //     }
-  //   }
-  // }
-
+async function publishToNpm(name: string, targetVersion: string) {
   let releaseTag = ''
 
-  if (isRcVersion(nextVersion)) {
+  if (isRcVersion(targetVersion)) {
     releaseTag = 'next'
-  } else if (isAlphaVersion(nextVersion)) {
+  } else if (isAlphaVersion(targetVersion)) {
     releaseTag = 'alpha'
-  } else if (isBetaVersion(nextVersion)) {
+  } else if (isBetaVersion(targetVersion)) {
     releaseTag = 'beta'
   }
 
   const cliArgs = `publish ${releaseTag ? `--tag ${releaseTag}` : ''} --access public`
 
   await exec(`npm ${cliArgs}`)
+  logger.success(`Successfully published ${chalk.cyanBright.bold(`${name}@${targetVersion}`)}.`)
 }
 
 async function githubRelease(repoUrl: string, tag: string, body: string, isPrerelease: boolean) {
