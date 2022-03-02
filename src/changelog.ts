@@ -43,10 +43,10 @@ export async function generateChangelog(
         if (fs.existsSync(CHANGELOG)) {
           const remain = fs.readFileSync(CHANGELOG, 'utf8').trim()
           changelog = remain.length
-            ? remain.replace(/# Change Log/, '# Change Log \n\n' + data)
+            ? remain.replace(/# ChangeLog/, '# ChangeLog \n\n' + data)
             : '# Change Log \n\n' + data
         } else {
-          changelog = '# Change Log \n\n' + data
+          changelog = '# ChangeLog \n\n' + data
         }
 
         fs.writeFileSync(CHANGELOG, changelog)
@@ -71,9 +71,9 @@ export async function generateChangelog(
           latestLog = data.replace(/##* \[([\d\.]+)\]/, '## [Changes]')
 
           fs.writeFileSync(LATESTLOG, latestLog)
-          logger.success(`LATESTLOG generated successfully.`)
+          logger.success(`Successfully generated LATESTLOG.`)
         }
-      } catch (err) {
+      } catch (err: any) {
         hasError = true
         reject(err.stack)
       }
@@ -93,7 +93,7 @@ export async function generateChangelog(
         return
       }
 
-      logger.success(`CHANGELOG generated successfully.`)
+      logger.success(`Successfully generated CHANGELOG.`)
       resolve(latestLog)
     })
   })

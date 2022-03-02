@@ -8,3 +8,22 @@ export interface Options {
   latest?: boolean
   changelogPreset?: string
 }
+
+export interface Workspace {
+  [key: string]: string[]
+}
+
+export interface Package {
+  name: string
+  version: string
+  private?: boolean
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+  publishConfig?: {
+    registry: string
+  }
+  repository?: {
+    url: string
+  }
+}

@@ -14,62 +14,67 @@ const VERSION_PRE_MAJOR = 'Premajor'
 const VERSION_PRE_MINOR = 'Preminor'
 const VERSION_PRE_PATCH = 'Prepatch'
 
-export async function getNextVersion(pkgPath: string, version?: string): Promise<string> {
-  if (!pkgPath || !fs.existsSync(pkgPath)) {
-    logger.printErrorAndExit(`package.json file ${pkgPath} is not exist.`)
+export async function getTargetVersion(rootPkgPath: string, monorepo = false): Promise<string> {
+  if (!rootPkgPath || !fs.existsSync(rootPkgPath)) {
+    logger.printErrorAndExit(`package.json file ${rootPkgPath} is not exist.`)
   }
 
-  const pkg = require(pkgPath)
+  const pkg = require(rootPkgPath)
 
-  if (!pkg || !pkg.name || !pkg.version) {
-    logger.printErrorAndExit(`package.json file ${pkgPath} is not valid.`)
+  if (!pkg || !pkg.version) {
+    logger.printErrorAndExit(`package.json file ${rootPkgPath} is not valid.`)
   }
 
-  const localVersion = version || pkg.version
+  const localVersion = pkg.version
+  let remoteLatestVersion: string | undefined
+  let remoteAlphaVersion: string | undefined
+  let remoteBetaVersion: string | undefined
+  let remoteNextVersion: string | undefined
 
-  const {
-    remoteLatestVersion,
-    remoteAlphaVersion,
-    remoteBetaVersion,
-    remoteNextVersion,
-  } = await getDistTag(pkg.name)
+  if (!monorepo) {
+    const distTag = await getDistTag(pkg.name)
+    remoteLatestVersion = distTag.remoteLatestVersion
+    remoteAlphaVersion = distTag.remoteAlphaVersion
+    remoteBetaVersion = distTag.remoteBetaVersion
+    remoteNextVersion = distTag.remoteNextVersion
 
-  logger.info(`Local version: ${chalk.cyanBright.bold(localVersion)}`)
+    logger.info(`Local version: ${chalk.cyanBright.bold(localVersion)}`)
 
-  if (remoteLatestVersion) {
-    logger.info(`  - Remote latest version: ${chalk.cyanBright.bold(remoteLatestVersion)}`)
+    if (remoteLatestVersion) {
+      logger.info(`  - Remote latest version: ${chalk.cyanBright.bold(remoteLatestVersion)}`)
+    }
+
+    if (remoteAlphaVersion) {
+      logger.info(`  - Remote alpha version: ${chalk.cyanBright.bold(remoteAlphaVersion)}`)
+    }
+
+    if (remoteBetaVersion) {
+      logger.info(`  - Remote beta version: ${chalk.cyanBright.bold(remoteBetaVersion)}`)
+    }
+
+    if (remoteNextVersion) {
+      logger.info(`  - Remote next version: ${chalk.cyanBright.bold(remoteNextVersion)}`)
+    }
+
+    console.log()
   }
 
-  if (remoteAlphaVersion) {
-    logger.info(`  - Remote alpha version: ${chalk.cyanBright.bold(remoteAlphaVersion)}`)
-  }
-
-  if (remoteBetaVersion) {
-    logger.info(`  - Remote beta version: ${chalk.cyanBright.bold(remoteBetaVersion)}`)
-  }
-
-  if (remoteNextVersion) {
-    logger.info(`  - Remote next version: ${chalk.cyanBright.bold(remoteNextVersion)}`)
-  }
-
-  console.log()
-
-  const referenceVersion = getReferenceVersion(remoteLatestVersion, localVersion)
-  const alphaReferenceVersion = getReferenceVersion(remoteAlphaVersion, localVersion)
-  const betaReferenceVersion = getReferenceVersion(remoteBetaVersion, localVersion)
-  const nextReferenceVersion = getReferenceVersion(remoteNextVersion, localVersion)
+  const latestReferenceVersion = getReferenceVersion(localVersion, remoteLatestVersion)
+  const alphaReferenceVersion = getReferenceVersion(localVersion, remoteAlphaVersion)
+  const betaReferenceVersion = getReferenceVersion(localVersion, remoteBetaVersion)
+  const nextReferenceVersion = getReferenceVersion(localVersion, remoteNextVersion)
 
   const suggestions = {
     [VERSION_MAJOR]: semver.inc(
-      referenceVersion,
+      latestReferenceVersion,
       VERSION_MAJOR.toLowerCase() as semver.ReleaseType
     ),
     [VERSION_MINOR]: semver.inc(
-      referenceVersion,
+      latestReferenceVersion,
       VERSION_MINOR.toLowerCase() as semver.ReleaseType
     ),
     [VERSION_PATCH]: semver.inc(
-      referenceVersion,
+      latestReferenceVersion,
       VERSION_PATCH.toLowerCase() as semver.ReleaseType
     ),
     Alpha: {
@@ -184,7 +189,7 @@ export async function getNextVersion(pkgPath: string, version?: string): Promise
     },
   ]
 
-  let nextVersion = await inquirer.prompt([
+  let targetVersion = await inquirer.prompt([
     {
       name: 'value',
       type: 'list',
@@ -193,9 +198,9 @@ export async function getNextVersion(pkgPath: string, version?: string): Promise
     },
   ])
 
-  switch (nextVersion.value) {
+  switch (targetVersion.value) {
     case 'Beta':
-      nextVersion = await inquirer.prompt([
+      targetVersion = await inquirer.prompt([
         {
           name: 'value',
           type: 'list',
@@ -226,7 +231,7 @@ export async function getNextVersion(pkgPath: string, version?: string): Promise
       ])
       break
     case 'Alpha':
-      nextVersion = await inquirer.prompt([
+      targetVersion = await inquirer.prompt([
         {
           name: 'value',
           type: 'list',
@@ -257,7 +262,7 @@ export async function getNextVersion(pkgPath: string, version?: string): Promise
       ])
       break
     case 'Rc':
-      nextVersion = await inquirer.prompt([
+      targetVersion = await inquirer.prompt([
         {
           name: 'value',
           type: 'list',
@@ -291,9 +296,5 @@ export async function getNextVersion(pkgPath: string, version?: string): Promise
       break
   }
 
-  pkg.version = nextVersion.value
-
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
-
-  return pkg.version
+  return targetVersion.value
 }

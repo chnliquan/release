@@ -1,17 +1,56 @@
 import fs from 'fs'
 import path from 'path'
+import { URL } from 'url'
 import chalk from 'chalk'
 import open from 'open'
+import yaml from 'js-yaml'
 import newGithubReleaseUrl from 'new-github-release-url'
 
 import { generateChangelog } from './changelog'
-import { gettargetVersion } from './gettargetVersion'
-import { isAlphaVersion, isBetaVersion, isPrerelease, isRcVersion } from './utils/version'
-import { logger } from './utils/logger'
-import { exec } from './utils/cp'
+import { getTargetVersion } from './version'
+import {
+  logger,
+  exec,
+  isAlphaVersion,
+  isBetaVersion,
+  isPrerelease,
+  isRcVersion,
+  updateVersions,
+} from './utils'
 import { getStatus, getBranchName } from './utils/git'
 import { Options } from './types'
-import { URL } from 'url'
+import { Package, Workspace } from '.'
+
+const cwd = process.cwd()
+
+const rootPkgPath = path.join(cwd, 'package.json')
+
+if (!fs.existsSync(rootPkgPath)) {
+  logger.printErrorAndExit(
+    `Unable to find the ${rootPkgPath} file, please make sure to execute the command in the root directory.`
+  )
+}
+
+const workspace: Workspace = Object.create(null)
+
+try {
+  const doc = yaml.load(fs.readFileSync(path.resolve(cwd, './pnpm-workspace.yaml'), 'utf8')) as {
+    packages: string[]
+  }
+
+  if (doc.packages?.length) {
+    const reg = /(\w+)\/\*?/
+
+    doc.packages.forEach(pkgGlob => {
+      const rootDirName = pkgGlob.match(reg)![1]
+      workspace[rootDirName] = fs
+        .readdirSync(path.resolve(cwd, rootDirName))
+        .filter(p => !path.extname(p))
+    })
+  }
+} catch (err) {}
+
+const isMonorepo = Object.keys(workspace).length > 0
 
 /**
  * Workflow
@@ -26,24 +65,24 @@ import { URL } from 'url'
  * 8. Push
  */
 export async function release(options: Options): Promise<void> {
+  if (isMonorepo) {
+    try {
+      await exec('pnpm -v')
+    } catch (err) {
+      logger.printErrorAndExit('Release script depend on `pnpm`, please install `pnpm` first.')
+    }
+  }
+
   const hasModified = await getStatus()
 
   if (hasModified) {
     logger.printErrorAndExit('Your git status is not clean. Aborting.')
   }
 
-  const pkgPath = path.join(process.cwd(), './package.json')
+  const { name, version, repository, publishConfig } = require(rootPkgPath) as Package
 
-  if (!fs.existsSync(pkgPath)) {
-    logger.printErrorAndExit(
-      `Unable to find the ${pkgPath} file, please make sure to execute the command in the root directory.`
-    )
-  }
-
-  const { name, version, repository, publishConfig } = require(pkgPath)
-
-  if (!name || !version) {
-    logger.printErrorAndExit(`package.json file ${pkgPath} is not valid, please check.`)
+  if (!version) {
+    logger.printErrorAndExit(`package.json file ${rootPkgPath} is not valid, please check.`)
   }
 
   const defaultOptions = {
@@ -79,29 +118,43 @@ export async function release(options: Options): Promise<void> {
     }
   }
 
-  logger.step(`Bump version`)
-  const targetVersion = await gettargetVersion(pkgPath)
+  const targetVersion = await getTargetVersion(rootPkgPath, isMonorepo)
+
+  // update all package versions and inter-dependencies
+  logger.step('Updating versions')
+  const packageRoots = updateVersions(targetVersion, workspace)
 
   // generate changelog
   logger.step(`Generate changelog`)
   const changelog = await generateChangelog(changelogPreset, latest, name)
 
+  if (isMonorepo) {
+    // update pnpm-lock.yaml
+    logger.step('Updating lockfile...')
+    await exec('pnpm install --prefer-offline')
+  }
+
   // committing changes
   logger.step('Committing changes')
   await exec('git add -A')
-  await exec(`chore: bump version v${targetVersion}`)
+  await exec(`git commit -m 'chore: bump version v${targetVersion}'`)
 
   // publish package
-  logger.step(`Publishing package ${name}`)
-  await publishToNpm(name, targetVersion)
+  if (isMonorepo) {
+    logger.step(`Publishing packages`)
+    for (const pkgRoot of packageRoots) {
+      await publishPackage(pkgRoot, targetVersion)
+    }
+  } else {
+    logger.step(`Publishing package ${name}`)
+    await publishPackage(cwd, targetVersion)
+  }
 
   const tag = `v${targetVersion}`
 
   logger.step('Pushing to Git Remote')
   await exec(`git tag v${targetVersion}`)
-
   const branch = await getBranchName()
-  logger.step(`git push --set-upstream origin ${branch} --tags`)
   await exec(`git push --set-upstream origin ${branch} --tags`)
 
   // github release
@@ -110,7 +163,14 @@ export async function release(options: Options): Promise<void> {
   }
 }
 
-async function publishToNpm(name: string, targetVersion: string) {
+async function publishPackage(pkgRoot: string, targetVersion: string) {
+  const pkgPath = path.resolve(pkgRoot, 'package.json')
+  const pkg: Package = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+
+  if (pkg.private) {
+    return
+  }
+
   let releaseTag = ''
 
   if (isRcVersion(targetVersion)) {
@@ -121,10 +181,13 @@ async function publishToNpm(name: string, targetVersion: string) {
     releaseTag = 'beta'
   }
 
+  const cli = isMonorepo ? 'pnpm' : 'npm'
   const cliArgs = `publish ${releaseTag ? `--tag ${releaseTag}` : ''} --access public`
 
-  await exec(`npm ${cliArgs}`)
-  logger.success(`Successfully published ${chalk.cyanBright.bold(`${name}@${targetVersion}`)}.`)
+  await exec(`${cli} ${cliArgs}`, {
+    cwd: pkgRoot,
+  })
+  logger.success(`Successfully published ${chalk.cyanBright.bold(`${pkg.name}@${targetVersion}`)}.`)
 }
 
 async function githubRelease(repoUrl: string, tag: string, body: string, isPrerelease: boolean) {

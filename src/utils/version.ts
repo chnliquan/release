@@ -1,7 +1,11 @@
+import path from 'path'
+import fs from 'fs'
 import semver from 'semver'
 import chalk from 'chalk'
 import { logger } from './logger'
 import { exec } from './cp'
+import { getPkgRoot } from './path'
+import { Package, Workspace } from '..'
 
 export function isPrerelease(version: string): boolean {
   return isAlphaVersion(version) || isBetaVersion(version) || isRcVersion(version)
@@ -45,7 +49,7 @@ export async function getDistTag(pkgName: string) {
         remoteNextVersion = tag.split(': ')[1]
       }
     })
-  } catch (err) {
+  } catch (err: any) {
     if (err.message.includes('command not found')) {
       logger.error(`Please make sure the ${chalk.cyanBright.bold('npm')} has been installed`)
       process.exit(1)
@@ -67,7 +71,7 @@ export async function getDistTag(pkgName: string) {
   }
 }
 
-export function getReferenceVersion(remoteVersion: string, localVersion: string): string {
+export function getReferenceVersion(localVersion: string, remoteVersion?: string): string {
   if (!remoteVersion) {
     return localVersion
   }
@@ -85,4 +89,71 @@ export function getReferenceVersion(remoteVersion: string, localVersion: string)
   }
 
   return semver.gt(remoteVersion, localVersion) ? remoteVersion : localVersion
+}
+
+export interface Packages {
+  [key: string]: string[]
+}
+
+export function updateVersions(version: string, workspace: Workspace): string[] {
+  // 1. update root package.json
+  updatePackage(process.cwd(), version)
+  // 2. update all packages with monorepo
+  if (Object.keys(workspace).length > 0) {
+    // TODO：duplicate pkg name
+    const allPackages = Object.keys(workspace).reduce((prev, rootDir) => {
+      const packages = workspace[rootDir]
+      return prev.concat(packages)
+    }, [] as string[])
+
+    const packageRoots: string[] = []
+
+    Object.keys(workspace).forEach(rootDir => {
+      const packages = workspace[rootDir]
+      packages.forEach(pkg => {
+        const packageRoot = path.resolve(process.cwd(), rootDir, pkg)
+        packageRoots.push(packageRoot)
+        updatePackage(packageRoot, version, allPackages)
+      })
+    })
+
+    return packageRoots
+  }
+
+  return []
+}
+
+export function updatePackage(pkgRoot: string, version: string, packages?: string[]) {
+  const pkgPath = path.resolve(pkgRoot, 'package.json')
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+  pkg.version = version
+
+  if (packages) {
+    updateDeps(packages, pkg, 'dependencies', version)
+    updateDeps(packages, pkg, 'peerDependencies', version)
+  }
+
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
+}
+
+export function updateDeps(
+  packages: string[],
+  pkg: Package,
+  depType: 'dependencies' | 'peerDependencies',
+  version: string
+) {
+  const deps = pkg[depType]
+
+  if (!deps) {
+    return
+  }
+
+  const reg = /\^?(\d+\.\d+\.\d+)(-(alpha|beta|next)\.\d+)?/
+
+  Object.keys(deps).forEach(dep => {
+    if (dep.startsWith('@test') && packages.includes(dep.replace(/^@test\//, ''))) {
+      logger.info(`${pkg.name} -> ${depType} -> ${dep}@${version}`)
+      deps[dep] = deps[dep].replace(reg, version)
+    }
+  })
 }
