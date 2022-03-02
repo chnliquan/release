@@ -1,24 +1,16 @@
 #!/usr/bin/env node
-
 'use strict'
 
 const { program } = require('commander')
 const chalk = require('chalk')
+
 const { release } = require('../lib')
+const { logger } = require('../lib/utils')
 const pkg = require('../package.json')
 
 run()
 
 function run() {
-  if (pkg.private) {
-    console.log(
-      chalk.redBright(
-        `This package ${pkg.name} has been marked as private, remove the 'private' field from the package.json to publish it.`
-      )
-    )
-    process.exit(1)
-  }
-
   program
     .version(pkg.version, '-v, --version', 'Output the current version.')
     .option('-t, --repo-type <repo-type>', 'Publish type, github or gitlab.')
@@ -47,11 +39,8 @@ function run() {
 
   const { repoType } = program._optionValues
 
-  if (repoType !== 'github' && repoType !== 'gitlab') {
-    console.log(
-      chalk.redBright(`Expected the --repo-type as github or gitlab, but got ${program.repoType}.`)
-    )
-    process.exit(1)
+  if (repoType && repoType !== 'github' && repoType !== 'gitlab') {
+    logger.printErrorAndExit(`Expected the --repo-type as github or gitlab, but got ${repoType}.`)
   }
 
   release(program._optionValues)

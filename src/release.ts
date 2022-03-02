@@ -91,15 +91,21 @@ export async function release(options: Options): Promise<void> {
     latest: true,
   }
 
-  const { changelogPreset, latest, repoType, repoUrl } = Object.assign(defaultOptions, options)
+  const { changelogPreset, latest, repoType: specifiedRepoType, repoUrl } = Object.assign(
+    defaultOptions,
+    options
+  )
+  const repoType = specifiedRepoType || repoUrl.includes('github') ? 'github' : 'gitlab'
 
   let registry = ''
 
   if (repoType === 'github') {
-    try {
-      new URL(repoUrl)
-    } catch {
-      logger.printErrorAndExit(`GitHub repo url is invalid: ${repoUrl}, Aborting.`)
+    if (repoUrl) {
+      try {
+        new URL(repoUrl)
+      } catch {
+        logger.printErrorAndExit(`GitHub repo url is invalid: ${repoUrl}, Aborting.`)
+      }
     }
 
     registry = 'https://registry.npmjs.org/'
@@ -158,7 +164,7 @@ export async function release(options: Options): Promise<void> {
   await exec(`git push --set-upstream origin ${branch} --tags`)
 
   // github release
-  if (repoType === 'github') {
+  if (repoType === 'github' && repoUrl) {
     await githubRelease(repoUrl, `${tag}`, changelog, isPrerelease(targetVersion))
   }
 }
