@@ -37,14 +37,14 @@ export async function generateChangelog(
         let data: string = chunk.toString()
 
         if (data.indexOf('###') === -1) {
-          data = data.replace(/\n+/g, `\n\n **Note:** Version bump only for package ${pkgName}`)
+          data = data.replace(/\n+/g, `\n\n**Note:** Version bump only for package ${pkgName}`)
         }
 
         if (fs.existsSync(CHANGELOG)) {
           const remain = fs.readFileSync(CHANGELOG, 'utf8').trim()
           changelog = remain.length
-            ? remain.replace(/# ChangeLog/, '# ChangeLog \n\n' + data)
-            : '# Change Log \n\n' + data
+            ? remain.replace(/# Change\s?Log/, '# ChangeLog \n\n' + data)
+            : '# ChangeLog \n\n' + data
         } else {
           changelog = '# ChangeLog \n\n' + data
         }
