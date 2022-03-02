@@ -188,7 +188,7 @@ async function publishPackage(pkgRoot: string, targetVersion: string) {
   }
 
   const cli = isMonorepo ? 'pnpm' : 'npm'
-  const cliArgs = `publish ${releaseTag ? `--tag ${releaseTag}` : ''} --access public`
+  const cliArgs = `publish${releaseTag ? ` --tag ${releaseTag}` : ''} --access public`
 
   await exec(`${cli} ${cliArgs}`, {
     cwd: pkgRoot,
