@@ -101,31 +101,31 @@ export function updateVersions(version: string, workspace: Workspace): string[] 
   // 2. update all packages with monorepo
   if (Object.keys(workspace).length > 0) {
     // TODO：duplicate pkg name
-    const allPackages = Object.keys(workspace).reduce((prev, rootDir) => {
-      const packages = workspace[rootDir]
+    const allPackages = Object.keys(workspace).reduce((prev, dir) => {
+      const packages = workspace[dir]
       return prev.concat(packages)
     }, [] as string[])
 
-    const packageRoots: string[] = []
+    const pkgDirs: string[] = []
 
-    Object.keys(workspace).forEach(rootDir => {
-      const packages = workspace[rootDir]
+    Object.keys(workspace).forEach(dir => {
+      const packages = workspace[dir]
       packages.forEach(pkg => {
-        const packageRoot = path.resolve(process.cwd(), rootDir, pkg)
-        packageRoots.push(packageRoot)
-        updatePackage(packageRoot, version, allPackages)
+        const pkgDir = path.resolve(process.cwd(), dir, pkg)
+        pkgDirs.push(pkgDir)
+        updatePackage(pkgDir, version, allPackages)
       })
     })
 
-    return packageRoots
+    return pkgDirs
   }
 
   return []
 }
 
-export function updatePackage(pkgRoot: string, version: string, packages?: string[]) {
-  const pkgPath = path.resolve(pkgRoot, 'package.json')
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+export function updatePackage(pkgDir: string, version: string, packages?: string[]) {
+  const pkgJSONPath = path.resolve(pkgDir, 'package.json')
+  const pkg = JSON.parse(fs.readFileSync(pkgJSONPath, 'utf-8'))
   pkg.version = version
 
   if (packages) {
@@ -133,7 +133,7 @@ export function updatePackage(pkgRoot: string, version: string, packages?: strin
     updateDeps(packages, pkg, 'peerDependencies', version)
   }
 
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
+  fs.writeFileSync(pkgJSONPath, JSON.stringify(pkg, null, 2) + '\n')
 }
 
 export function updateDeps(

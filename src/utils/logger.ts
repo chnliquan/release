@@ -19,7 +19,7 @@ export class Logger {
   }
 
   step(name: string): void {
-    console.log(`${chalk.gray('>>> Release:')} ${chalk.magenta.bold(name)}`)
+    console.log(`\n${chalk.gray('>>> Release:')} ${chalk.magenta.bold(name)}`)
   }
 
   printErrorAndExit(message: string): void {

@@ -7,6 +7,7 @@ export interface Options {
   repoUrl?: string
   latest?: boolean
   changelogPreset?: string
+  checkGitStatus?: boolean
 }
 
 export interface Workspace {

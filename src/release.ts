@@ -23,11 +23,11 @@ import { Package, Workspace } from '.'
 
 const cwd = process.cwd()
 
-const rootPkgPath = path.join(cwd, 'package.json')
+const rootPkgJSONPath = path.join(cwd, 'package.json')
 
-if (!fs.existsSync(rootPkgPath)) {
+if (!fs.existsSync(rootPkgJSONPath)) {
   logger.printErrorAndExit(
-    `Unable to find the ${rootPkgPath} file, please make sure to execute the command in the root directory.`
+    `Unable to find the ${rootPkgJSONPath} file, please make sure to execute the command in the root directory.`
   )
 }
 
@@ -73,29 +73,35 @@ export async function release(options: Options): Promise<void> {
     }
   }
 
-  const hasModified = await getStatus()
-
-  if (hasModified) {
-    logger.printErrorAndExit('Your git status is not clean. Aborting.')
-  }
-
-  const { name, version, repository, publishConfig } = require(rootPkgPath) as Package
+  const { name, version, repository, publishConfig } = require(rootPkgJSONPath) as Package
 
   if (!version) {
-    logger.printErrorAndExit(`package.json file ${rootPkgPath} is not valid, please check.`)
+    logger.printErrorAndExit(`package.json file ${rootPkgJSONPath} is not valid, please check.`)
   }
 
   const defaultOptions = {
     changelogPreset: '@eljs/changelog-preset',
     repoUrl: repository ? repository.url : '',
     latest: true,
+    checkGitStatus: true,
   }
 
-  const { changelogPreset, latest, repoType: specifiedRepoType, repoUrl } = Object.assign(
-    defaultOptions,
-    options
-  )
+  const {
+    changelogPreset,
+    latest,
+    repoType: specifiedRepoType,
+    repoUrl,
+    checkGitStatus,
+  } = Object.assign(defaultOptions, options)
   const repoType = specifiedRepoType || repoUrl.includes('github') ? 'github' : 'gitlab'
+
+  if (checkGitStatus) {
+    const hasModified = await getStatus()
+
+    if (hasModified) {
+      logger.printErrorAndExit('Your git status is not clean. Aborting.')
+    }
+  }
 
   let registry = ''
 
@@ -124,14 +130,14 @@ export async function release(options: Options): Promise<void> {
     }
   }
 
-  const targetVersion = await getTargetVersion(rootPkgPath, isMonorepo)
+  const targetVersion = await getTargetVersion(rootPkgJSONPath, isMonorepo)
 
   // update all package versions and inter-dependencies
-  logger.step('Updating versions')
-  const packageRoots = updateVersions(targetVersion, workspace)
+  logger.step('Updating versions ...')
+  const pkgDirs = updateVersions(targetVersion, workspace)
 
   // generate changelog
-  logger.step(`Generate changelog`)
+  logger.step(`Generating changelog ...`)
   const changelog = await generateChangelog(changelogPreset, latest, name)
 
   if (isMonorepo) {
@@ -140,25 +146,25 @@ export async function release(options: Options): Promise<void> {
     await exec('pnpm install --prefer-offline')
   }
 
-  // committing changes
-  logger.step('Committing changes')
+  // commit git changes
+  logger.step('Committing changes ...')
   await exec('git add -A')
   await exec(`git commit -m 'chore: bump version v${targetVersion}'`)
 
   // publish package
   if (isMonorepo) {
-    logger.step(`Publishing packages`)
-    for (const pkgRoot of packageRoots) {
-      await publishPackage(pkgRoot, targetVersion)
+    logger.step(`Publishing packages ...`)
+    for (const pkgDir of pkgDirs) {
+      await publishPackage(pkgDir, targetVersion)
     }
   } else {
-    logger.step(`Publishing package ${name}`)
+    logger.step(`Publishing package ${name} ...`)
     await publishPackage(cwd, targetVersion)
   }
 
   const tag = `v${targetVersion}`
 
-  logger.step('Pushing to Git Remote')
+  logger.step('Pushing to git remote ...')
   await exec(`git tag v${targetVersion}`)
   const branch = await getBranchName()
   await exec(`git push --set-upstream origin ${branch} --tags`)
@@ -169,9 +175,9 @@ export async function release(options: Options): Promise<void> {
   }
 }
 
-async function publishPackage(pkgRoot: string, targetVersion: string) {
-  const pkgPath = path.resolve(pkgRoot, 'package.json')
-  const pkg: Package = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+async function publishPackage(pkgDir: string, targetVersion: string) {
+  const pkgJSONPath = path.resolve(pkgDir, 'package.json')
+  const pkg: Package = JSON.parse(fs.readFileSync(pkgJSONPath, 'utf-8'))
 
   if (pkg.private) {
     return
@@ -191,7 +197,7 @@ async function publishPackage(pkgRoot: string, targetVersion: string) {
   const cliArgs = `publish${releaseTag ? ` --tag ${releaseTag}` : ''} --access public`
 
   await exec(`${cli} ${cliArgs}`, {
-    cwd: pkgRoot,
+    cwd: pkgDir,
   })
   logger.success(`Successfully published ${chalk.cyanBright.bold(`${pkg.name}@${targetVersion}`)}.`)
 }
