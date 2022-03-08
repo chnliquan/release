@@ -4,7 +4,6 @@ import semver from 'semver'
 import chalk from 'chalk'
 import { logger } from './logger'
 import { exec } from './cp'
-import { getPkgRoot } from './path'
 import { Package, Workspace } from '..'
 
 export function isPrerelease(version: string): boolean {

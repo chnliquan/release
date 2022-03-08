@@ -199,7 +199,7 @@ async function publishPackage(pkgDir: string, targetVersion: string) {
   await exec(`${cli} ${cliArgs}`, {
     cwd: pkgDir,
   })
-  logger.success(`Successfully published ${chalk.cyanBright.bold(`${pkg.name}@${targetVersion}`)}.`)
+  logger.done(`Successfully published ${chalk.cyanBright.bold(`${pkg.name}@${targetVersion}`)}.`)
 }
 
 async function githubRelease(repoUrl: string, tag: string, body: string, isPrerelease: boolean) {

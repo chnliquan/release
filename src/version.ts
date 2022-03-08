@@ -38,22 +38,22 @@ export async function getTargetVersion(rootPkgPath: string, monorepo = false): P
     remoteBetaVersion = distTag.remoteBetaVersion
     remoteNextVersion = distTag.remoteNextVersion
 
-    logger.info(`Local version: ${chalk.cyanBright.bold(localVersion)}`)
+    logger.info(`- Local version: ${chalk.cyanBright.bold(localVersion)}`)
 
     if (remoteLatestVersion) {
-      logger.info(`  - Remote latest version: ${chalk.cyanBright.bold(remoteLatestVersion)}`)
+      logger.info(`- Remote latest version: ${chalk.cyanBright.bold(remoteLatestVersion)}`)
     }
 
     if (remoteAlphaVersion) {
-      logger.info(`  - Remote alpha version: ${chalk.cyanBright.bold(remoteAlphaVersion)}`)
+      logger.info(`- Remote alpha version:  ${chalk.cyanBright.bold(remoteAlphaVersion)}`)
     }
 
     if (remoteBetaVersion) {
-      logger.info(`  - Remote beta version: ${chalk.cyanBright.bold(remoteBetaVersion)}`)
+      logger.info(`- Remote beta version:   ${chalk.cyanBright.bold(remoteBetaVersion)}`)
     }
 
     if (remoteNextVersion) {
-      logger.info(`  - Remote next version: ${chalk.cyanBright.bold(remoteNextVersion)}`)
+      logger.info(`- Remote next version:   ${chalk.cyanBright.bold(remoteNextVersion)}`)
     }
 
     console.log()

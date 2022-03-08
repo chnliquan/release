@@ -71,7 +71,7 @@ export async function generateChangelog(
           latestLog = data.replace(/##* \[([\d\.]+)\]/, '## [Changes]')
 
           fs.writeFileSync(LATESTLOG, latestLog)
-          logger.success(`Successfully generated LATESTLOG.`)
+          logger.done(`Generated LATESTLOG successfully.`)
         }
       } catch (err: any) {
         hasError = true
@@ -93,7 +93,7 @@ export async function generateChangelog(
         return
       }
 
-      logger.success(`Successfully generated CHANGELOG.`)
+      logger.done(`Generated CHANGELOG successfully.`)
       resolve(latestLog)
     })
   })
