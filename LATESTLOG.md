@@ -1,9 +1,3 @@
-## [Changes](https://github.com/chnliquan/release/compare/v0.4.2...v0.5.0) (2022-03-06)
+## [Changes](https://github.com/chnliquan/release/compare/v0.5.0...v0.5.1) (2022-03-08)
 
-
-### ✨ Features
-
-* support check git status ([edb6401](https://github.com/chnliquan/release/commit/edb640192304f2321b2fab36c39e912c1c5cb074))
-
-
-
+**Note:** Version bump only for package @eljs/release
