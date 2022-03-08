@@ -1,5 +1,5 @@
 export { release } from './release'
-export { step } from './utils'
+export { logger } from './utils/logger'
 export { generateChangelog } from './changelog'
 
 export * from './types'

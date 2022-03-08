@@ -29,8 +29,8 @@ function printErrorAndExit(msg: string) {
   process.exit(1)
 }
 
-export function step(msg: string) {
-  console.log(`\n${chalk.gray('>>> Release:')} ${chalk.magenta.bold(msg)}`)
+export function step(msg: string, tag = 'Release') {
+  console.log(`\n${chalk.gray(`>>> ${tag}:`)} ${chalk.magenta.bold(msg)}`)
 }
 
 export const logger = {

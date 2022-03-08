@@ -2,9 +2,10 @@ import path from 'path'
 import fs from 'fs'
 import semver from 'semver'
 import chalk from 'chalk'
+
 import { logger } from './logger'
 import { exec } from './cp'
-import { Package, Workspace } from '..'
+import { Package, Workspace } from '../types'
 
 export function isPrerelease(version: string): boolean {
   return isAlphaVersion(version) || isBetaVersion(version) || isRcVersion(version)
