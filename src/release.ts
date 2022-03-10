@@ -92,6 +92,8 @@ export async function release(options: Options): Promise<void> {
     repoType: specifiedRepoType,
     repoUrl,
     checkGitStatus,
+    beforeUpdateVersion,
+    beforeChangelog,
   } = Object.assign(defaultOptions, options)
   const repoType = specifiedRepoType || repoUrl.includes('github') ? 'github' : 'gitlab'
 
@@ -132,9 +134,17 @@ export async function release(options: Options): Promise<void> {
 
   const targetVersion = await getTargetVersion(rootPkgJSONPath, isMonorepo)
 
+  if (typeof beforeUpdateVersion === 'function') {
+    await beforeUpdateVersion(targetVersion)
+  }
+
   // update all package versions and inter-dependencies
   logger.step('Updating versions ...')
   const pkgDirs = updateVersions(name, targetVersion, workspace)
+
+  if (typeof beforeChangelog === 'function') {
+    await beforeChangelog()
+  }
 
   // generate changelog
   logger.step(`Generating changelog ...`)

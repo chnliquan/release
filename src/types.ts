@@ -8,6 +8,9 @@ export interface Options {
   latest?: boolean
   changelogPreset?: string
   checkGitStatus?: boolean
+
+  beforeUpdateVersion?: (version: string) => Promise<void>
+  beforeChangelog?: () => Promise<void>
 }
 
 export interface Workspace {

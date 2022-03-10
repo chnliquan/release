@@ -117,6 +117,7 @@ export function updateVersions(rootName: string, version: string, workspace: Wor
       const packages = workspace[dir]
       packages.forEach(pkg => {
         const pkgDir = path.resolve(process.cwd(), dir, pkg)
+
         pkgDirs.push(pkgDir)
         updatePackage({
           rootName,
