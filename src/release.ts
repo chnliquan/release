@@ -134,7 +134,7 @@ export async function release(options: Options): Promise<void> {
 
   // update all package versions and inter-dependencies
   logger.step('Updating versions ...')
-  const pkgDirs = updateVersions(targetVersion, workspace)
+  const pkgDirs = updateVersions(name, targetVersion, workspace)
 
   // generate changelog
   logger.step(`Generating changelog ...`)
