@@ -13,24 +13,25 @@
 *.tmp
 .eslintcache
 
-# Tests
-test/
+# tests
+__tests__/
 coverage/
-jets.config.js
 
-# Linters
+# linters
 .eslintrc
 .eslintignore
-.prettierrc
 
-# Settings
-.editorconfig
+# settings
+.prettierrc
 .npmrc
 tsconfig.json
+
 
 # Dependency
 node_modules/
 
 # Custermize
-src/
 scripts/
+examples/
+docs/
+src/

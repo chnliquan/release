@@ -4,8 +4,7 @@
 const { program } = require('commander')
 const chalk = require('chalk')
 
-const { release } = require('../lib')
-const { logger } = require('../lib/utils')
+const { release, logger } = require('../dist/release.cjs')
 const pkg = require('../package.json')
 
 run()

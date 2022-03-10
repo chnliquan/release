@@ -1,7 +1,6 @@
 # javascripts
 bin/
-lib/
 scripts/
 
 # tests
-test/
+__tests__/
