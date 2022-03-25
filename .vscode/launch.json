@@ -29,8 +29,8 @@
       "request": "launch",
       "name": "Bin File",
       "program": "${workspaceRoot}/node_modules/ts-node/dist/bin.js",
-      "args": ["${workspaceRoot}/bin/release.js", "-t", "github"],
-      "cwd": "/Users/ender/learning/release-demo",
+      "args": ["${workspaceRoot}/bin/release.js"],
+      "cwd": "${workspaceRoot}",
       "protocol": "inspector",
       "console": "integratedTerminal"
     }
