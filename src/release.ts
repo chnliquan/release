@@ -92,6 +92,7 @@ export async function release(options: Options): Promise<void> {
     repoType: specifiedRepoType,
     repoUrl,
     checkGitStatus,
+    targetVersion: specifiedTargetVersion,
     beforeUpdateVersion,
     beforeChangelog,
   } = Object.assign(defaultOptions, options)
@@ -132,7 +133,7 @@ export async function release(options: Options): Promise<void> {
     }
   }
 
-  const targetVersion = await getTargetVersion(rootPkgJSONPath, isMonorepo)
+  const targetVersion = await getTargetVersion(rootPkgJSONPath, isMonorepo, specifiedTargetVersion)
 
   if (typeof beforeUpdateVersion === 'function') {
     await beforeUpdateVersion(targetVersion)

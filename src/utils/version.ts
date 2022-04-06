@@ -71,6 +71,26 @@ export async function getDistTag(pkgName: string) {
   }
 }
 
+export async function isVersionExist(pkgName: string, version: string) {
+  try {
+    const remoteInfo = (await exec(`npm view ${pkgName}@${version} version`)).replace(/\W*/, '')
+    if (remoteInfo.trim() === '') {
+      return false
+    }
+  } catch (err: any) {
+    if (err.message.includes('command not found')) {
+      logger.error(`Please make sure the ${chalk.cyanBright.bold('npm')} has been installed`)
+      process.exit(1)
+    } else {
+      logger.info(`This package ${chalk.cyanBright.bold(pkgName)} has never been released, this is the first release.`)
+      console.log()
+      return false
+    }
+  }
+
+  return true
+}
+
 export function getReferenceVersion(localVersion: string, remoteVersion?: string): string {
   if (!remoteVersion) {
     return localVersion

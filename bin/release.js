@@ -15,6 +15,7 @@ function run() {
     .option('-t, --repo-type <repo-type>', 'Publish type, github or gitlab.')
     .option('-u, --repo-url <repo-url>', 'Github repo url to release.')
     .option('-p, --changelog-preset <changelog-preset>', 'Customize conventional changelog preset.')
+    .option('--target-version <target-version>', 'Target release version.')
     .option('--latest', 'Generate latest changelog', true)
 
   program.commands.forEach(c => c.on('--help', () => console.log()))
