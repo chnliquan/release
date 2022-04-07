@@ -20,6 +20,7 @@ $ yarn add @eljs/release --dev
   Options:
     -v, --version                              Output the current version
     --latest                                   Generate latest changelog (default: true)
+    --target-version                           Target release version
     -t, --repo-type <repo-type>                Publish type, github or gitlab
     -u, --repo-url <repo-url>                  Github repo url to release
     -p, --changelog-preset <changelog-preset>  Customize conventional changelog preset
@@ -57,6 +58,10 @@ customize conventional changelog preset, the default is https://github.com/chnli
 ### `--latest?: boolean`
 
 whether generate **LATEASTLOG.md** which represent the latest changelog in project root, default `true`
+
+### `--target-version?: string`
+
+Specified target version to release, no need to choose version, useful in CI/CD
 
 ## LICENSE
 

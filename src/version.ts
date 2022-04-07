@@ -3,7 +3,7 @@ import inquirer from 'inquirer'
 import chalk from 'chalk'
 import semver from 'semver'
 import { logger } from './utils/logger'
-import { getDistTag, getReferenceVersion } from './utils/version'
+import { getDistTag, getReferenceVersion, isVersionExist } from './utils/version'
 
 const VERSION_MAJOR = 'Major'
 const VERSION_MINOR = 'Minor'
@@ -14,7 +14,7 @@ const VERSION_PRE_MAJOR = 'Premajor'
 const VERSION_PRE_MINOR = 'Preminor'
 const VERSION_PRE_PATCH = 'Prepatch'
 
-export async function getTargetVersion(rootPkgPath: string, monorepo = false): Promise<string> {
+export async function getTargetVersion(rootPkgPath: string, monorepo = false, specifiedTargetVersion?: string): Promise<string> {
   if (!rootPkgPath || !fs.existsSync(rootPkgPath)) {
     logger.printErrorAndExit(`package.json file ${rootPkgPath} is not exist.`)
   }
@@ -57,6 +57,21 @@ export async function getTargetVersion(rootPkgPath: string, monorepo = false): P
     }
 
     console.log()
+  }
+
+  // specified target version, check version exsit
+  if (specifiedTargetVersion) {
+    const isExist = await isVersionExist(pkg.name, specifiedTargetVersion);
+    if (isExist) {
+      logger.error(
+        `This package ${pkg.name} is already published v${
+          chalk.bold(specifiedTargetVersion)
+        }, please check your targetVersion.`)
+      process.exit(1);
+    } else {
+      logger.warn(`- Specified target version: ${specifiedTargetVersion}`)
+      return specifiedTargetVersion;
+    }
   }
 
   const latestReferenceVersion = getReferenceVersion(localVersion, remoteLatestVersion)
