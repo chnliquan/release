@@ -9,13 +9,15 @@ const { release, logger } = require('../dist/release.cjs')
 const pkg = require('../package.json')
 
 run()
-
 function checkVersion(value) {
   const isValid = Boolean(semver.valid(value))
   if (!isValid) {
-    throw new InvalidOptionArgumentError('need a valid semantic version');
+    throw new InvalidOptionArgumentError('need a valid semantic version')
   }
-  return value;
+
+  // if startsWith 'v', need to remove it
+  if (value.indexOf('v') === 0) return value.substring(1)
+  return value
 }
 
 function run() {
