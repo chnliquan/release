@@ -61,14 +61,6 @@ export async function getTargetVersion(rootPkgPath: string, monorepo = false, sp
 
   // specified target version, check version exsit
   if (specifiedTargetVersion) {
-    // check input
-    const isValid = Boolean(semver.valid(specifiedTargetVersion));
-    if (!isValid) {
-      logger.error(`${specifiedTargetVersion} is not a valid semantic version, please check your targetVersion.`)
-      process.exit(1);
-    }
-
-    // check exist
     const isExist = await isVersionExist(pkg.name, specifiedTargetVersion);
     if (isExist) {
       logger.error(

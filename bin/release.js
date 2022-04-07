@@ -1,13 +1,22 @@
 #!/usr/bin/env node
 'use strict'
 
-const { program } = require('commander')
+const { program, InvalidOptionArgumentError } = require('commander')
 const chalk = require('chalk')
+const semver = require('semver')
 
 const { release, logger } = require('../dist/release.cjs')
 const pkg = require('../package.json')
 
 run()
+
+function checkVersion(value) {
+  const isValid = Boolean(semver.valid(value))
+  if (!isValid) {
+    throw new InvalidOptionArgumentError('need a valid semantic version');
+  }
+  return value;
+}
 
 function run() {
   program
@@ -15,7 +24,7 @@ function run() {
     .option('-t, --repo-type <repo-type>', 'Publish type, github or gitlab.')
     .option('-u, --repo-url <repo-url>', 'Github repo url to release.')
     .option('-p, --changelog-preset <changelog-preset>', 'Customize conventional changelog preset.')
-    .option('--target-version <target-version>', 'Target release version.')
+    .option('--target-version <target-version>', 'Target release version.', checkVersion)
     .option('--latest', 'Generate latest changelog', true)
 
   program.commands.forEach(c => c.on('--help', () => console.log()))
