@@ -96,7 +96,7 @@ export async function release(options: Options): Promise<void> {
     beforeUpdateVersion,
     beforeChangelog,
   } = Object.assign(defaultOptions, options)
-  const repoType = specifiedRepoType || repoUrl.includes('github') ? 'github' : 'gitlab'
+  const repoType = specifiedRepoType || (repoUrl.includes('github') ? 'github' : 'gitlab')
 
   if (checkGitStatus) {
     const hasModified = await getStatus()
