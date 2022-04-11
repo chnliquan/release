@@ -123,7 +123,14 @@ export function updateVersions(rootName: string, version: string, workspace: Wor
     version,
   })
 
-  // 2. update all packages with monorepo
+  // 2. update package-lock.json if exist
+  updatePackageLock({
+    rootName,
+    pkgDir: process.cwd(),
+    version,
+  })
+
+  // 3. update all packages with monorepo
   if (Object.keys(workspace).length > 0) {
     // TODO：duplicate pkg name
     const allPackages = Object.keys(workspace).reduce((prev, dir) => {
@@ -184,6 +191,16 @@ export function updatePackage({ rootName, pkgDir, version, packages }: UpdatePac
   }
 
   fs.writeFileSync(pkgJSONPath, JSON.stringify(pkg, null, 2) + '\n')
+}
+
+export function updatePackageLock({ rootName, pkgDir, version }: UpdatePackageParams) {
+  const pkgLockJSONPath = path.resolve(pkgDir, 'package-lock.json')
+  if (!fs.existsSync(pkgLockJSONPath)) return;
+
+  const pkg = JSON.parse(fs.readFileSync(pkgLockJSONPath, 'utf-8'))
+  pkg.version = version
+
+  fs.writeFileSync(pkgLockJSONPath, JSON.stringify(pkg, null, 2) + '\n')
 }
 
 interface UpdateDepsParams {
