@@ -1,9 +1,9 @@
-## [Changes](https://github.com/chnliquan/release/compare/v0.7.0...v0.7.1) (2022-04-08)
+## [Changes](https://github.com/chnliquan/release/compare/v0.7.1...v0.7.2) (2022-04-11)
 
 
 ### 🐛 Bug Fixes
 
-* repo type error ([1516ac3](https://github.com/chnliquan/release/commit/1516ac3181ef9723b5fc915df107b59153b77b60))
+* update packge-lock.json version ([6a702d5](https://github.com/chnliquan/release/commit/6a702d53598083364d8dda5b0cf37012d66fe041))
 
 
 
