@@ -14,7 +14,56 @@ const VERSION_PRE_MAJOR = 'Premajor'
 const VERSION_PRE_MINOR = 'Preminor'
 const VERSION_PRE_PATCH = 'Prepatch'
 
-export async function getTargetVersion(rootPkgPath: string, monorepo = false, specifiedTargetVersion?: string): Promise<string> {
+function generatePreVersionQuestions(
+  type: 'Beta' | 'Alpha' | 'Rc',
+  suggestions: Record<string, any>
+) {
+  return [
+    {
+      name: 'value',
+      type: 'list',
+      message: `Please select the ${type} version number to upgrade`,
+      choices: [VERSION_PRE_RELEASE, VERSION_PRE_PATCH, VERSION_PRE_MINOR, VERSION_PRE_MAJOR].map(
+        item => ({
+          short: suggestions[type][VERSION_PRE_MAJOR],
+          name: `${item === VERSION_PRE_RELEASE ? item : item + '  '} (${suggestions[type][item]})`,
+          value: suggestions[type][item],
+        })
+      ),
+    },
+  ]
+}
+
+function generatePreVersionSuggestion(type: 'Beta' | 'Alpha' | 'Rc', referenceVersion: string) {
+  return {
+    [VERSION_PRE_MAJOR]: semver.inc(
+      referenceVersion,
+      VERSION_PRE_MAJOR.toLowerCase() as semver.ReleaseType,
+      type.toLocaleLowerCase()
+    ),
+    [VERSION_PRE_MINOR]: semver.inc(
+      referenceVersion,
+      VERSION_PRE_MINOR.toLowerCase() as semver.ReleaseType,
+      type.toLocaleLowerCase()
+    ),
+    [VERSION_PRE_PATCH]: semver.inc(
+      referenceVersion,
+      VERSION_PRE_PATCH.toLowerCase() as semver.ReleaseType,
+      type.toLocaleLowerCase()
+    ),
+    [VERSION_PRE_RELEASE]: semver.inc(
+      referenceVersion,
+      VERSION_PRE_RELEASE.toLowerCase() as semver.ReleaseType,
+      type.toLocaleLowerCase()
+    ),
+  }
+}
+
+export async function getTargetVersion(
+  rootPkgPath: string,
+  isMonorepo = false,
+  specifiedTargetVersion?: string
+): Promise<string> {
   if (!rootPkgPath || !fs.existsSync(rootPkgPath)) {
     logger.printErrorAndExit(`package.json file ${rootPkgPath} is not exist.`)
   }
@@ -31,7 +80,7 @@ export async function getTargetVersion(rootPkgPath: string, monorepo = false, sp
   let remoteBetaVersion: string | undefined
   let remoteNextVersion: string | undefined
 
-  if (!monorepo) {
+  if (!isMonorepo) {
     const distTag = await getDistTag(pkg.name)
     remoteLatestVersion = distTag.remoteLatestVersion
     remoteAlphaVersion = distTag.remoteAlphaVersion
@@ -59,18 +108,20 @@ export async function getTargetVersion(rootPkgPath: string, monorepo = false, sp
     console.log()
   }
 
-  // specified target version, check version exsit
+  // specified target version, check version exist
   if (specifiedTargetVersion) {
-    const isExist = await isVersionExist(pkg.name, specifiedTargetVersion);
+    const isExist = await isVersionExist(pkg.name, specifiedTargetVersion)
+
     if (isExist) {
       logger.error(
-        `This package ${pkg.name} is already published v${
-          chalk.bold(specifiedTargetVersion)
-        }, please check your targetVersion.`)
-      process.exit(1);
+        `This package ${pkg.name} is already published v${chalk.bold(
+          specifiedTargetVersion
+        )}, please check your targetVersion.`
+      )
+      process.exit(1)
     } else {
       logger.warn(`- Specified target version: ${specifiedTargetVersion}`)
-      return specifiedTargetVersion;
+      return specifiedTargetVersion
     }
   }
 
@@ -92,72 +143,9 @@ export async function getTargetVersion(rootPkgPath: string, monorepo = false, sp
       latestReferenceVersion,
       VERSION_PATCH.toLowerCase() as semver.ReleaseType
     ),
-    Alpha: {
-      [VERSION_PRE_MAJOR]: semver.inc(
-        alphaReferenceVersion,
-        VERSION_PRE_MAJOR.toLowerCase() as semver.ReleaseType,
-        'alpha'
-      ),
-      [VERSION_PRE_MINOR]: semver.inc(
-        alphaReferenceVersion,
-        VERSION_PRE_MINOR.toLowerCase() as semver.ReleaseType,
-        'alpha'
-      ),
-      [VERSION_PRE_PATCH]: semver.inc(
-        alphaReferenceVersion,
-        VERSION_PRE_PATCH.toLowerCase() as semver.ReleaseType,
-        'alpha'
-      ),
-      [VERSION_PRE_RELEASE]: semver.inc(
-        alphaReferenceVersion,
-        VERSION_PRE_RELEASE.toLowerCase() as semver.ReleaseType,
-        'alpha'
-      ),
-    },
-    Beta: {
-      [VERSION_PRE_MAJOR]: semver.inc(
-        betaReferenceVersion,
-        VERSION_PRE_MAJOR.toLowerCase() as semver.ReleaseType,
-        'beta'
-      ),
-      [VERSION_PRE_MINOR]: semver.inc(
-        betaReferenceVersion,
-        VERSION_PRE_MINOR.toLowerCase() as semver.ReleaseType,
-        'beta'
-      ),
-      [VERSION_PRE_PATCH]: semver.inc(
-        betaReferenceVersion,
-        VERSION_PRE_PATCH.toLowerCase() as semver.ReleaseType,
-        'beta'
-      ),
-      [VERSION_PRE_RELEASE]: semver.inc(
-        betaReferenceVersion,
-        VERSION_PRE_RELEASE.toLowerCase() as semver.ReleaseType,
-        'beta'
-      ),
-    },
-    Rc: {
-      [VERSION_PRE_MAJOR]: semver.inc(
-        nextReferenceVersion,
-        VERSION_PRE_MAJOR.toLowerCase() as semver.ReleaseType,
-        'rc'
-      ),
-      [VERSION_PRE_MINOR]: semver.inc(
-        nextReferenceVersion,
-        VERSION_PRE_MINOR.toLowerCase() as semver.ReleaseType,
-        'rc'
-      ),
-      [VERSION_PRE_PATCH]: semver.inc(
-        nextReferenceVersion,
-        VERSION_PRE_PATCH.toLowerCase() as semver.ReleaseType,
-        'rc'
-      ),
-      [VERSION_PRE_RELEASE]: semver.inc(
-        nextReferenceVersion,
-        VERSION_PRE_RELEASE.toLowerCase() as semver.ReleaseType,
-        'rc'
-      ),
-    },
+    Alpha: generatePreVersionSuggestion('Alpha', alphaReferenceVersion),
+    Beta: generatePreVersionSuggestion('Beta', betaReferenceVersion),
+    Rc: generatePreVersionSuggestion('Rc', nextReferenceVersion),
   }
 
   const maxVersionName = Math.max(
@@ -215,97 +203,15 @@ export async function getTargetVersion(rootPkgPath: string, monorepo = false, sp
 
   switch (targetVersion.value) {
     case 'Beta':
-      targetVersion = await inquirer.prompt([
-        {
-          name: 'value',
-          type: 'list',
-          message: 'Please select the Beta version number to upgrade:',
-          choices: [
-            {
-              short: suggestions.Beta[VERSION_PRE_RELEASE],
-              name: `${VERSION_PRE_RELEASE} (${suggestions.Beta[VERSION_PRE_RELEASE]})`,
-              value: suggestions.Beta[VERSION_PRE_RELEASE],
-            },
-            {
-              short: suggestions.Beta[VERSION_PRE_PATCH],
-              name: `${VERSION_PRE_PATCH}   (${suggestions.Beta[VERSION_PRE_PATCH]})`,
-              value: suggestions.Beta[VERSION_PRE_PATCH],
-            },
-            {
-              short: suggestions.Beta[VERSION_PRE_MINOR],
-              name: `${VERSION_PRE_MINOR}   (${suggestions.Beta[VERSION_PRE_MINOR]})`,
-              value: suggestions.Beta[VERSION_PRE_MINOR],
-            },
-            {
-              short: suggestions.Beta[VERSION_PRE_MAJOR],
-              name: `${VERSION_PRE_MAJOR}   (${suggestions.Beta[VERSION_PRE_MAJOR]})`,
-              value: suggestions.Beta[VERSION_PRE_MAJOR],
-            },
-          ],
-        },
-      ])
+      targetVersion = await inquirer.prompt(generatePreVersionQuestions('Beta', suggestions))
       break
+
     case 'Alpha':
-      targetVersion = await inquirer.prompt([
-        {
-          name: 'value',
-          type: 'list',
-          message: 'Please select the Alpha version number to upgrade',
-          choices: [
-            {
-              short: suggestions.Alpha[VERSION_PRE_RELEASE],
-              name: `${VERSION_PRE_RELEASE} (${suggestions.Alpha[VERSION_PRE_RELEASE]})`,
-              value: suggestions.Alpha[VERSION_PRE_RELEASE],
-            },
-            {
-              short: suggestions.Alpha[VERSION_PRE_PATCH],
-              name: `${VERSION_PRE_PATCH}   (${suggestions.Alpha[VERSION_PRE_PATCH]})`,
-              value: suggestions.Alpha[VERSION_PRE_PATCH],
-            },
-            {
-              short: suggestions.Alpha[VERSION_PRE_MINOR],
-              name: `${VERSION_PRE_MINOR}   (${suggestions.Alpha[VERSION_PRE_MINOR]})`,
-              value: suggestions.Alpha[VERSION_PRE_MINOR],
-            },
-            {
-              short: suggestions.Alpha[VERSION_PRE_MAJOR],
-              name: `${VERSION_PRE_MAJOR}   (${suggestions.Alpha[VERSION_PRE_MAJOR]})`,
-              value: suggestions.Alpha[VERSION_PRE_MAJOR],
-            },
-          ],
-        },
-      ])
+      targetVersion = await inquirer.prompt(generatePreVersionQuestions('Alpha', suggestions))
       break
+
     case 'Rc':
-      targetVersion = await inquirer.prompt([
-        {
-          name: 'value',
-          type: 'list',
-          message: 'Please select the Rc version number to upgrade',
-          choices: [
-            {
-              short: suggestions.Rc[VERSION_PRE_RELEASE],
-              name: `${VERSION_PRE_RELEASE} (${suggestions.Rc[VERSION_PRE_RELEASE]})`,
-              value: suggestions.Rc[VERSION_PRE_RELEASE],
-            },
-            {
-              short: suggestions.Rc[VERSION_PRE_PATCH],
-              name: `${VERSION_PRE_PATCH}   (${suggestions.Rc[VERSION_PRE_PATCH]})`,
-              value: suggestions.Rc[VERSION_PRE_PATCH],
-            },
-            {
-              short: suggestions.Rc[VERSION_PRE_MINOR],
-              name: `${VERSION_PRE_MINOR}   (${suggestions.Rc[VERSION_PRE_MINOR]})`,
-              value: suggestions.Rc[VERSION_PRE_MINOR],
-            },
-            {
-              short: suggestions.Rc[VERSION_PRE_MAJOR],
-              name: `${VERSION_PRE_MAJOR}   (${suggestions.Rc[VERSION_PRE_MAJOR]})`,
-              value: suggestions.Rc[VERSION_PRE_MAJOR],
-            },
-          ],
-        },
-      ])
+      targetVersion = await inquirer.prompt(generatePreVersionQuestions('Rc', suggestions))
       break
     default:
       break
