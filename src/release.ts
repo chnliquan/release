@@ -5,6 +5,7 @@ import chalk from 'chalk'
 import open from 'open'
 import yaml from 'js-yaml'
 import newGithubReleaseUrl from 'new-github-release-url'
+import { not } from 'junk'
 
 import { generateChangelog } from './changelog'
 import { getTargetVersion } from './version'
@@ -45,7 +46,7 @@ try {
       const rootDirName = pkgGlob.match(reg)![1]
       workspace[rootDirName] = fs
         .readdirSync(path.resolve(cwd, rootDirName))
-        .filter(p => !path.extname(p))
+        .filter(filename => not(filename) && !path.extname(filename))
     })
   }
 } catch (err) {}
