@@ -1,6 +1,6 @@
 {
   "name": "@eljs/release",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "release npm package easily",
   "main": "dist/release.cjs.js",
   "module": "dist/release.esm.js",
